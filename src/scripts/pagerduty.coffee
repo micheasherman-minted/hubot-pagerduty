@@ -145,8 +145,10 @@ getAllIncidents = (msg, types, callback, addl_query, incidents) ->
       "Authorization": "Token token=" + token
     .get() (err, res, body) ->
       result = JSON.parse(body)
+
       for incident in result.incidents
         incidents.push(incident)
+
       if types.length > 0
         getAllIncidents(msg, types, callback, addl_query, incidents)
       else
