@@ -145,8 +145,10 @@ getAllIncidents = (msg, types, callback, addl_query, incidents) ->
       "Authorization": "Token token=" + token
     .get() (err, res, body) ->
       result = JSON.parse(body)
+
       for incident in result.incidents
         incidents.push(incident)
+
       if types.length > 0
         getAllIncidents(msg, types, callback, addl_query, incidents)
       else
@@ -169,19 +171,24 @@ updateIncident = (msg, ids, status) ->
 
     string_data = JSON.stringify(data)
     content_length = string_data.length
-    msg 
-      .http("https://#{subdomain}.pagerduty.com/api/v1/incidents")
-      .headers
-        "Content-type": "application/json"
-        "Content-Length": content_length
-        "Authorization": "Token token=" + token
-      .put(string_data) (err, res, body) ->
-        result = JSON.parse(body)
-        for incident in result.incidents
-          if incident.error?
-            msg.send "error changing #{incident.id} to #{status}: #{incident.error.message}"
-          else
-            msg.send "#{incident.id} set to #{status}"
+
+    if incidents.length > 0
+      msg 
+        .http("https://#{subdomain}.pagerduty.com/api/v1/incidents")
+        .headers
+          "Content-type": "application/json"
+          "Content-Length": content_length
+          "Authorization": "Token token=" + token
+        .put(string_data) (err, res, body) ->
+          result = JSON.parse(body)
+          if result.incidents?
+            for incident in result.incidents
+              if incident.error?
+                msg.send "error changing #{incident.id} to #{status}: #{incident.error.message}"
+              else
+                msg.send "#{incident.id} set to #{status}"
+    else
+      msg.send "No incidents to update"
 
   if ids[0] == "all"
     if status == "resolved"
