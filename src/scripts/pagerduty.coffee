@@ -29,25 +29,16 @@ incident_room = { "reply_to": config.incident_room }
 
 seen_incidents = { }
 
+zeropad = (number) ->
+  return ("0" + number).slice(-2)
+
 # this is seriously some ghetto shit. if someone else knows how to make it
 # better, please do. -erikh
 getTextDate = (date) ->
   month = date.getMonth() + 1
   day = date.getDate()
-  today = "#{date.getFullYear()}-"
-
-  if month < 10
-    month = "0#{month}"
-  else
-    month = "#{month}"
-
-  if day < 10
-    day = "0#{day}"
-  else
-    day = "#{day}"
-
-  today += "#{month}-#{day}"
-  return today
+  year = date.getFullYear()
+  return "#{year}-#{zeropad(month)}-#{zeropad(day)}"
 
 getFetcher = (schedule, func) ->
   return (msg, today, tomorrow) ->
