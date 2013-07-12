@@ -223,7 +223,7 @@ processIncident = (robot, incident, detail) ->
   strings = ["PagerDuty Alert: #{formatIncident(incident, detail)} - Incident ID: #{incident.id}"]
   if incident.assigned_to_user?
     strings.push(" Assigned To: #{incident.assigned_to_user.name}")
-  robot.send(incident_room, strings...)
+  robot.send(incident_room, strings.join(', '))
 
 describeIncident = (robot, id) ->
   robot 
