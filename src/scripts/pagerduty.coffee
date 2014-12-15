@@ -34,10 +34,7 @@ zeropad = (number) ->
 # this is seriously some ghetto shit. if someone else knows how to make it
 # better, please do. -erikh
 getTextDate = (date) ->
-  month = date.getMonth() + 1
-  day = date.getDate()
-  year = date.getFullYear()
-  return "#{year}-#{zeropad(month)}-#{zeropad(day)}"
+  return date.toISOString()
 
 # more ghetto shit -erikh
 getUTCTextTime = (date) ->
@@ -85,7 +82,7 @@ getFetcher = (schedule, func) ->
         "Authorization": "Token token=" + token
       .get() (err, res, body) ->
         result = JSON.parse(body)
-        msg.send "#{schedule_name}: #{result.entries[0].user.name}" 
+        msg.send "#{schedule_name}: #{result.entries[0].user.name}"
         func(msg, today, tomorrow) if func?
 
 setOverride = (msg, time, userid) ->
@@ -102,7 +99,7 @@ setOverride = (msg, time, userid) ->
         now = new Date()
         start = getUTCTextTime(now)
         end = getUTCTextTime(new Date(now.getTime() + (time * 60000)))
-        data = { 
+        data = {
           "override": { "user_id": userid, "start": start, "end": end }
         }
 
@@ -118,7 +115,7 @@ setOverride = (msg, time, userid) ->
                 "Authorization": "Token token=" + token
                 "Content-Length": content_length
               .post(string_data) (err, res, body) ->
-                override_result = JSON.parse(body) 
+                override_result = JSON.parse(body)
                 if override_result && override_result.override && !override_result.override.error?
                   msg.send "Override set #{schedule.name} from #{start} to #{end}"
                 else
@@ -128,7 +125,7 @@ getAllIncidents = (msg, types, callback, addl_query, incidents) ->
   incidents   ||= []
   addl_query  ||= { }
   addl_query.status = types.shift()
-  msg 
+  msg
     .http("https://#{subdomain}.pagerduty.com/api/v1/incidents")
     .query(addl_query)
     .headers
@@ -152,8 +149,8 @@ updateIncident = (msg, ids, status) ->
     status = "resolved"
 
   update_status = (msg, incidents) ->
-    data = { 
-      "requester_id": user_map[msg.message.user.name], 
+    data = {
+      "requester_id": user_map[msg.message.user.name],
       "incidents": [ ]
     }
 
@@ -164,7 +161,7 @@ updateIncident = (msg, ids, status) ->
     content_length = string_data.length
 
     if incidents.length > 0
-      msg 
+      msg
         .http("https://#{subdomain}.pagerduty.com/api/v1/incidents")
         .headers
           "Content-type": "application/json"
@@ -184,7 +181,7 @@ updateIncident = (msg, ids, status) ->
   if ids[0] == "all"
     if status == "resolved"
       ids = getAllIncidents(msg, ["triggered", "acknowledged"], update_status)
-    if status == "acknowledged" 
+    if status == "acknowledged"
       ids = getAllIncidents(msg, ["triggered"], update_status)
   else
     update_status(msg, { "id": id } for id in ids)
@@ -226,7 +223,7 @@ processIncident = (robot, incident, detail) ->
   robot.send(incident_room, strings.join(', '))
 
 describeIncident = (robot, id) ->
-  robot 
+  robot
     .http("https://#{subdomain}.pagerduty.com/api/v1/incidents/#{id}")
     .headers
       "Content-type": "application/json"
@@ -245,7 +242,7 @@ checkIncidents = (robot) ->
         seen_incidents[incident.incident_number] = processing_time
       # make an attempt to cleanup stuff we'll never see again
       for num, time of seen_incidents
-        if processing_time - incident_timeout > time 
+        if processing_time - incident_timeout > time
           delete seen_incidents[num]
 
   today = new Date()
@@ -304,4 +301,4 @@ module.exports = (robot) ->
         else
           msg.send "There was an error sending your page."
   robot.respond /pdcheck/i, (msg) ->
-    checkIncidents(robot) 
+    checkIncidents(robot)
